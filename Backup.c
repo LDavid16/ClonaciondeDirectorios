@@ -213,8 +213,9 @@ int main(int argc, char *argv[]) {
         
         wait(NULL);
     }
-
     printf("\nTermino el proceso padre...\n");
+    execl("/bin/rm", "rm", "-r", origen, NULL);
+
     return 0;
 }
 
