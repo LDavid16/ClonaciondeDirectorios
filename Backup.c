@@ -60,16 +60,14 @@ int main(int argc, char *argv[])
 
         close(pfd[1]);  // Cerrar el extremo de escritura del pipe
         close(pfd2[0]); // cerrar lectura del pipe2
-        // Leer el mensaje del padre
+        
         printf("\n\nHIJO(pid=%d): esperando mensaje de mi padre...", getpid());
         read(pfd[0], bufferHijo, MAX);
-        // close(pfd[0]);
         printf("\nHIJO(pid=%d): Instrucción de mi padre: %s\n", getpid(), bufferHijo);
         fflush(stdout);
 
         write(pfd2[1], mensajehijo, MAX);
-        // close(pfd2[1]);
-
+    
         read(pfd[0], bufferHijo, MAX);
 
         int numArch;
@@ -85,13 +83,14 @@ int main(int argc, char *argv[])
             printf("\n\tHijo(pid=%d),respaldando el archivo %s   pendientes:%d/%d\n", getpid(), bufferHijo, (numArch - resta), numArch);
             fflush(stdout);
             resta++;
+            
         }
 
         write(pfd2[1], "Adios Padre, termine el respaldo...", 36);
-
-        // Ejecutar el comando "cp -r /ruta/origen /ruta/destino"
         snprintf(comando, sizeof(comando), "mv %s %s", origen, destino);
         system(comando);
+
+    
     }
     else
     { // Proceso padre
@@ -103,11 +102,11 @@ int main(int argc, char *argv[])
         printf("\nPADRE(pid=%d): generando LISTA DE ARCHIVOS A RESPALDAR", getpid());
         printf("\nPADRE(pid=%d): borrando respaldo viejo...\n", getpid());
 
-        // Revisando si el directorio de destino existe
+     
         snprintf(comando, sizeof(comando), "test -d %s", destino);
         if (system(comando) != 0)
         {
-            // Si el directorio de destino no existe, lo crea
+           
             printf("\nEl directorio de destino no existe. Creando...\n");
             snprintf(comando, sizeof(comando), "mkdir -p %s", destino);
             if (system(comando) == -1)
@@ -121,7 +120,7 @@ int main(int argc, char *argv[])
         {
             printf("El directorio de destino ya existe: %s\n", destino);
         }
-        // Crear el archivo lista.txt en el directorio de destino
+        
         snprintf(ruta_lista, sizeof(ruta_lista), "%s/Respaldo.txt", destino);
         archivo = fopen(ruta_lista, "w");
 
@@ -166,8 +165,7 @@ int main(int argc, char *argv[])
 
         numero = total_archivos;
 
-        // Escribir el número total de archivos y directorios en lista.txt
-        fprintf(archivo, "Total de archivos y directorios: %d\n", total_archivos);
+        fprintf(archivo, "%d ARCHIVOS RESPALDO \n", total_archivos);
         fclose(archivo);
 
         // Enviar el mensaje al hijo para que comience el respaldo
@@ -183,10 +181,8 @@ int main(int argc, char *argv[])
 
         if ((dir = opendir(origen)) != NULL)
         {
-            // Recorrer los archivos y directorios en el origen
             while ((ent = readdir(dir)) != NULL)
             {
-                // Ignorar "." y ".."
                 if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
                 {
                     printf("\n(PADRE-->%s)\n", ent->d_name);
@@ -223,8 +219,6 @@ int main(int argc, char *argv[])
         fclose(archivo);
         printf("\n======================================================================\n");
         printf("\nTermino el proceso padre...\n");
-        // Esperar la finalización del hijo
-
         wait(NULL);
     }
 
