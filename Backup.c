@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
         close(pfd2[1]); // cerramos escritura del pipe2
 
         printf("\nPADRE(pid=%d): generando LISTA DE ARCHIVOS A RESPALDAR", getpid());
-        printf("\nPADRE(pid=%d): borrando respaldo viejo...", getpid());
+        printf("\nPADRE(pid=%d): borrando respaldo viejo.../n", getpid());
 
         // Revisando si el directorio de destino existe
         snprintf(comando, sizeof(comando), "test -d %s", destino);
@@ -226,7 +226,8 @@ int main(int argc, char *argv[])
         wait(NULL);
     }
     printf("\nTermino el proceso padre...\n");
-    execl("/bin/rm", "rm", "-r", origen, NULL);
+    snprintf(comando, sizeof(comando), "rm -r %s", origen);
+    system(comando);
 
     return 0;
 }
