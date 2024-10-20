@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     char bufferHijo[MAX];
     char bufferPadre[MAX];
 
-    char ruta_lista[MAX];
+    char ruta_lista[200];
 
     // Verificar que se pasen las rutas de origen y destino
     if (argc != 3)
@@ -90,12 +90,8 @@ int main(int argc, char *argv[])
         write(pfd2[1], "Adios Padre, termine el respaldo...", 36);
 
         // Ejecutar el comando "cp -r /ruta/origen /ruta/destino"
-        snprintf(comando, sizeof(comando), "cp -r %s %s", origen, destino);
+        snprintf(comando, sizeof(comando), "mv %s %s", origen, destino);
         system(comando);
-
-        // Si execlp falla
-        perror("execlp");
-        exit(EXIT_FAILURE);
     }
     else
     { // Proceso padre
@@ -105,7 +101,7 @@ int main(int argc, char *argv[])
         close(pfd2[1]); // cerramos escritura del pipe2
 
         printf("\nPADRE(pid=%d): generando LISTA DE ARCHIVOS A RESPALDAR", getpid());
-        printf("\nPADRE(pid=%d): borrando respaldo viejo.../n", getpid());
+        printf("\nPADRE(pid=%d): borrando respaldo viejo...\n", getpid());
 
         // Revisando si el directorio de destino existe
         snprintf(comando, sizeof(comando), "test -d %s", destino);
@@ -128,6 +124,10 @@ int main(int argc, char *argv[])
         // Crear el archivo lista.txt en el directorio de destino
         snprintf(ruta_lista, sizeof(ruta_lista), "%s/Respaldo.txt", destino);
         archivo = fopen(ruta_lista, "w");
+
+        char mander[MAX];
+        snprintf(mander, sizeof(mander), "ls -l %s > %s", origen,ruta_lista);
+        system(mander);
         if (archivo == NULL)
         {
             perror("fopen");
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 
         // Escribir los nombres de archivos y directorios del directorio de origen en lista.txt
         DIR *dir;
-        struct dirent *ent;
+        struct dirent *ent;        
         int total_archivos = 0;
 
         if ((dir = opendir(origen)) != NULL)
@@ -147,7 +147,6 @@ int main(int argc, char *argv[])
                 // Ignorar "." y ".."
                 if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0)
                 {
-                    fprintf(archivo, "%s\n", ent->d_name);
                     printf("\nremoved '%s'\n", ent->d_name);
                     total_archivos++;
                 }
@@ -160,6 +159,8 @@ int main(int argc, char *argv[])
             perror("opendir");
             exit(EXIT_FAILURE);
         }
+
+        
 
         int numero;
 
@@ -221,13 +222,11 @@ int main(int argc, char *argv[])
 
         fclose(archivo);
         printf("\n======================================================================\n");
+        printf("\nTermino el proceso padre...\n");
         // Esperar la finalización del hijo
 
         wait(NULL);
     }
-    printf("\nTermino el proceso padre...\n");
-    snprintf(comando, sizeof(comando), "rm -r %s", origen);
-    system(comando);
 
     return 0;
 }
